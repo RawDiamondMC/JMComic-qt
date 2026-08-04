@@ -1,6 +1,5 @@
 import json
 import os
-from this import d
 
 from PySide6.QtCore import Signal, QUrl
 from PySide6.QtGui import QAction, Qt, QDesktopServices
