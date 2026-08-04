@@ -18,10 +18,12 @@ jobs:
     - name: Package tarball
       run: |
         python3 script/build_qrc.py
-        tar --exclude='.git' -czf ${{ env.PACKAGENAME }}.tar.gz .
     - name: Upload
       uses: actions/upload-artifact@v7
       with:
         name: ${{ env.PACKAGENAME }}
-        path: ${{ env.PACKAGENAME }}.tar.gz
+        path: |
+          .
+          !.git/**/*
+          !.github/**/*
         retention-days: 7
