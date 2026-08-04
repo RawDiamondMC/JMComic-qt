@@ -2,69 +2,22 @@ name: release
 on:
   workflow_dispatch:
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      PACKAGE_PREFIX: ${{ steps.get-package_prefix.outputs.PACKAGE_PREFIX }}
-      TAG_NAME: ${{ steps.get-package_prefix.outputs.TAG_NAME }}
-      HEAD_SHA_SHORT: ${{ steps.get-package_prefix.outputs.HEAD_SHA_SHORT }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
-      - name: get-package_prefix
-        id: get-package_prefix
-        run: |
-          LIB_NAME=jmcomic
-          TAG_NAME=$(git describe --abbrev=0 --tags)
-          HEAD_SHA_SHORT=$(git rev-parse --short HEAD)
-          echo "::set-output name=PACKAGE_PREFIX::${LIB_NAME}_${TAG_NAME}"
-          echo "::set-output name=TAG_NAME::${TAG_NAME}"
-          echo "::set-output name=HEAD_SHA_SHORT::${HEAD_SHA_SHORT}"
-
-  release:
-    needs: [setup]
-    runs-on: ubuntu-latest
-    outputs:
-      Up_Url: ${{ steps.create_release.outputs.upload_url }}
-    steps:
-      - name: create_release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.setup.outputs.TAG_NAME }}
-          release_name: ${{ needs.setup.outputs.TAG_NAME }}
-          draft: true
-          prerelease: true
-
   linux:
-    needs: [setup, release]
     runs-on: ubuntu-latest
     container:
       image: aosc/aosc-os:buildkit
       options: --platform=linux/amd64
     env:
-      PACKAGENAME: ${{ needs.setup.outputs.PACKAGE_PREFIX }}_linux_x64
+      PACKAGENAME: jmcomic_linux_x64
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
     - name: Package tarball
       run: |
         python script/build_qrc.py
         tar --exclude='.git' -czf ${{ env.PACKAGENAME }}.tar.gz .
     - name: Upload
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.PACKAGENAME }}
         path: ${{ env.PACKAGENAME }}.tar.gz
         retention-days: 7
-    - name: upload-linux
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ needs.release.outputs.Up_Url }}
-        asset_path: ${{ env.PACKAGENAME }}.tar.gz
-        asset_name: ${{ env.PACKAGENAME }}.tar.gz
-        asset_content_type: application/gzip
