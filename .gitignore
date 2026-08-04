@@ -145,3 +145,5 @@ test/__init__.py
 .vscode
 data/
 /dev
+
+src/images_rc.py
