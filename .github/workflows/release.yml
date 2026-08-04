@@ -11,6 +11,10 @@ jobs:
       PACKAGENAME: jmcomic_linux_x64
     steps:
     - uses: actions/checkout@v7
+    - name: Install deps
+      run: |
+        oma install pyside6 -y
+        sed -i 's|exe = pyside_dir / '\''Qt'\'' / '\''libexec'\'' / qt_tool|exe = Path("/usr/lib/qt6/libexec") / qt_tool|' /usr/lib/python3.14/site-packages/PySide6/scripts/pyside_tool.py
     - name: Package tarball
       run: |
         python3 script/build_qrc.py
